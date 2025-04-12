@@ -107,11 +107,13 @@ func Create(schedule string, command string, args []string) (cr *cron.Cron, wgr 
 	Current_state = CurrentState{map[string]*LastRun{}, &LastRun{}, schedule}
 	log.Println("new cron:", schedule)
 
-	c.AddFunc(schedule, func() {
+	if _, err := c.AddFunc(schedule, func() {
 		wg.Add(1)
 		execute(command, args)
 		wg.Done()
-	})
+	}); err != nil {
+		log.Printf("error adding cron function: %v", err)
+	}
 
 	return c, wg
 }

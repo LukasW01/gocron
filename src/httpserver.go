@@ -19,7 +19,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}
 
-	w.Write(js)
+	if _, err := w.Write(js); err != nil {
+		log.Printf("error writing response: %v", err)
+	}
 }
 
 func Http_server(port string) {

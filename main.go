@@ -33,7 +33,7 @@ func main() {
 	}
 	log.Println("Running version:", version)
 
-	c, wg := cron.Create(*schedule, execArgs[0], execArgs[1:len(execArgs)])
+	c, wg := cron.Create(*schedule, execArgs[0], execArgs[1:])
 
 	go cron.Start(c)
 	if *port != "0" {
