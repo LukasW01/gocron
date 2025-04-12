@@ -20,14 +20,14 @@ go run ./main.go -s "* * * * *" -p 8080 -i -- /bin/bash -c "echo 1;"
 Check the healthcheck:
 
 ```
-$ curl -v localhost:18080
-* Rebuilt URL to: localhost:18080/
+$ curl -v localhost:8080
+* Rebuilt URL to: localhost:8080/
 * Hostname was NOT found in DNS cache
 *   Trying ::1...
-* Connected to localhost (::1) port 18080 (#0)
+* Connected to localhost (::1) port 8080 (#0)
 > GET / HTTP/1.1
 > User-Agent: curl/7.37.1
-> Host: localhost:18080
+> Host: localhost:8080
 > Accept: */*
 >
 < HTTP/1.1 200 OK
@@ -37,7 +37,7 @@ $ curl -v localhost:18080
 <
 {
   "Running": {},
-  "Last": {
+  "Status": {
     "Exit_status": 0,
     "Stdout": "1\n",
     "Stderr": "",
