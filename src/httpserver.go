@@ -4,31 +4,34 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	js, err := json.MarshalIndent(Current_state, "", "  ")
+	json, err := json.Marshal(proc)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if Current_state.Last.Exit_status != 0 {
+	if proc.Status.ExitStatus != 0 {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}
 
-	if _, err := w.Write(js); err != nil {
-		log.Printf("error writing response: %v", err)
+	if _, err := w.Write(json); err != nil {
+		log.Printf("srror writing response: %v", err)
+		return
 	}
 }
 
-func Http_server(port string) {
+func HttpServer(port string) {
 	log.Println("Opening port", port, "for health checking")
 	http.HandleFunc("/", handler)
 	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		log.Printf("error starting server: %s\n", err)
+		os.Exit(1)
 	}
 }

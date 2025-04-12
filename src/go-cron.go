@@ -1,7 +1,6 @@
 package cron
 
 import (
-	"github.com/robfig/cron/v3"
 	"io"
 	"log"
 	"os"
@@ -11,10 +10,12 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/robfig/cron/v3"
 )
 
-type LastRun struct {
-	Exit_status  int
+type Status struct {
+	ExitStatus   int
 	Stdout       string
 	Stderr       string
 	ExitTime     string
@@ -22,15 +23,15 @@ type LastRun struct {
 	StartingTime string
 }
 
-type CurrentState struct {
-	Running  map[string]*LastRun
-	Last     *LastRun
+type Proc struct {
+	Running  map[string]*Status
+	Status      *Status
 	Schedule string
 }
 
-var Current_state CurrentState
+var proc Proc
 
-func copyOutput(out *string, src io.ReadCloser, pid int) {
+func Output(out *string, src io.ReadCloser, pid int) {
 	buf := make([]byte, 1024)
 	for {
 		n, err := src.Read(buf)
@@ -45,13 +46,8 @@ func copyOutput(out *string, src io.ReadCloser, pid int) {
 	}
 }
 
-func execute(command string, args []string) {
-
+func Execute(command string, args []string) {
 	cmd := exec.Command(command, args...)
-
-	run := new(LastRun)
-	run.StartingTime = time.Now().Format(time.RFC3339)
-
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -64,22 +60,22 @@ func execute(command string, args []string) {
 		log.Fatalf("cmd.Start: %v", err)
 	}
 
+	run := new(Status)
+	run.StartingTime = time.Now().Format(time.RFC3339)
 	run.Pid = cmd.Process.Pid
-	Current_state.Running[strconv.Itoa(run.Pid)] = run
+	proc.Running[strconv.Itoa(run.Pid)] = run
 
-	go copyOutput(&run.Stdout, stdout, run.Pid)
-	go copyOutput(&run.Stderr, stderr, run.Pid)
-
-	log.Println(run.Pid, "cmd:", command, strings.Join(args, " "))
+	go Output(&run.Stdout, stdout, run.Pid)
+	go Output(&run.Stderr, stderr, run.Pid)
 
 	if err := cmd.Wait(); err != nil {
-		if exiterr, ok := err.(*exec.ExitError); ok {
+		if exit, ok := err.(*exec.ExitError); ok {
 			// The program has exited with an exit code != 0
 			// so set the error code to tremporary value
-			run.Exit_status = 127
-			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-				run.Exit_status = status.ExitStatus()
-				log.Printf("%d Exit Status: %d", run.Pid, run.Exit_status)
+			run.ExitStatus = 127
+			if status, ok := exit.Sys().(syscall.WaitStatus); ok {
+				run.ExitStatus = status.ExitStatus()
+				log.Printf("%d Exit Status: %d", run.Pid, run.ExitStatus)
 			}
 		} else {
 			log.Fatalf("cmd.Wait: %v", err)
@@ -88,30 +84,32 @@ func execute(command string, args []string) {
 
 	run.ExitTime = time.Now().Format(time.RFC3339)
 
-	delete(Current_state.Running, strconv.Itoa(run.Pid))
+	delete(proc.Running, strconv.Itoa(run.Pid))
 	//run.Pid = 0
-	Current_state.Last = run
+	proc.Status = run
+
+	log.Println(run.Pid, "cmd:", command, strings.Join(args, " "))
 }
 
 func Create(schedule string, command string, args []string) (cr *cron.Cron, wgr *sync.WaitGroup) {
+	proc = Proc{map[string]*Status{}, &Status{}, schedule}
 
 	wg := &sync.WaitGroup{}
-
 	c := cron.New(
 		cron.WithParser(
 			cron.NewParser(
 				cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor,
 			),
 		),
-	)
-	Current_state = CurrentState{map[string]*LastRun{}, &LastRun{}, schedule}
-	log.Println("new cron:", schedule)
+	)	
 
-	if _, err := c.AddFunc(schedule, func() {
+	log.Println("new cron:", schedule)
+	_, err := c.AddFunc(schedule, func() {
 		wg.Add(1)
-		execute(command, args)
+		Execute(command, args)
 		wg.Done()
-	}); err != nil {
+	})
+	if err != nil {
 		log.Printf("error adding cron function: %v", err)
 	}
 
