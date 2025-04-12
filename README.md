@@ -1,7 +1,6 @@
 # gocron
 
-Simple golang wrapper over `github.com/robfig/cron` and `os/exec` as a cron replacement.
-Additionally the application opens a HTTP port that can be used as a healthcheck.2
+A simple golang wrapper over github.com/robfig/cron and os/exec as a cron replacement. Additionally the application opens a HTTP port that can be used as a healthcheck. 
 
 ## Getting Started
 
