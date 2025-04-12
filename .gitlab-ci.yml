@@ -1,0 +1,33 @@
+image: golang:latest
+
+stages:
+  - go
+
+format:
+  stage: go
+  script:
+    - go fmt .
+    - go vet .
+
+test:
+  stage: go
+  before_script:
+    - go get .
+    - go get -tool github.com/jstemmer/go-junit-report/v2@latest
+  script:
+    - go test -json 2>&1 | go tool go-junit-report -parser gojson > report.xml
+
+lint:
+  stage: go
+  before_script:
+    - go get -tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.0.2
+  script: 
+    - go tool golangci-lint run
+
+build:
+  stage: go
+  script:
+    - go build -o bin .
+  artifacts:
+    paths:
+      - bin
