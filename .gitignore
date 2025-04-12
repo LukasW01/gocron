@@ -23,3 +23,14 @@ _testmain.go
 *.test
 
 dist
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+.atom/
+
+# JUnit
+report.xml
