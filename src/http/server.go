@@ -11,7 +11,7 @@ import (
 func Server(port string) {
 	log.Println("Opening port", port, "for health checking")
 
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/", Handler)
 	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Printf("error starting server: %s\n", err)
@@ -19,7 +19,7 @@ func Server(port string) {
 	}
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func Handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	json, err := json.Marshal(cron.Proc)
