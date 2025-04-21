@@ -7,11 +7,10 @@
 _obj
 _test
 
+# Binaries
 *.exe
-*.test
 bin
-
-dist
+dist/
 
 # OS
 .DS_Store

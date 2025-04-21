@@ -26,14 +26,17 @@ test:
 lint:
   stage: go
   before_script:
+    - go get .
     - go get -tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.0.2
-  script: 
+  script:
     - go tool golangci-lint run
 
 build:
   stage: go
   script:
+    - go get .
     - go build -o bin .
   artifacts:
+    expire_in: 1 week
     paths:
       - bin

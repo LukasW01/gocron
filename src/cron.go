@@ -1,7 +1,7 @@
 package cron
 
 import (
-	"io"
+	"gocron/src/util"
 	"log"
 	"os"
 	"os/exec"
@@ -15,36 +15,20 @@ import (
 )
 
 type Status struct {
-	ExitStatus   int
-	Stdout       string
-	Stderr       string
-	ExitTime     string
-	Pid          int
-	StartingTime string
+	ExitStatus int
+	Stdout     string
+	Stderr     string
+	Time       string
+	Pid        int
 }
 
-type Proc struct {
+type Process struct {
 	Running  map[string]*Status
-	Status      *Status
+	Status   *Status
 	Schedule string
 }
 
-var proc Proc
-
-func Output(out *string, src io.ReadCloser, pid int) {
-	buf := make([]byte, 1024)
-	for {
-		n, err := src.Read(buf)
-		if n != 0 {
-			s := string(buf[:n])
-			*out = *out + s
-			log.Printf("%d: %v", pid, s)
-		}
-		if err != nil {
-			break
-		}
-	}
-}
+var Proc Process
 
 func Execute(command string, args []string) {
 	cmd := exec.Command(command, args...)
@@ -61,12 +45,11 @@ func Execute(command string, args []string) {
 	}
 
 	run := new(Status)
-	run.StartingTime = time.Now().Format(time.RFC3339)
+	run.Time = time.Now().Format(time.RFC3339)
 	run.Pid = cmd.Process.Pid
-	proc.Running[strconv.Itoa(run.Pid)] = run
-
-	go Output(&run.Stdout, stdout, run.Pid)
-	go Output(&run.Stderr, stderr, run.Pid)
+	Proc.Running[strconv.Itoa(run.Pid)] = run
+	go util.Output(&run.Stdout, stdout, run.Pid)
+	go util.Output(&run.Stderr, stderr, run.Pid)
 
 	if err := cmd.Wait(); err != nil {
 		if exit, ok := err.(*exec.ExitError); ok {
@@ -82,17 +65,14 @@ func Execute(command string, args []string) {
 		}
 	}
 
-	run.ExitTime = time.Now().Format(time.RFC3339)
-
-	delete(proc.Running, strconv.Itoa(run.Pid))
-	//run.Pid = 0
-	proc.Status = run
+	delete(Proc.Running, strconv.Itoa(run.Pid))
+	Proc.Status = run
 
 	log.Println(run.Pid, "cmd:", command, strings.Join(args, " "))
 }
 
 func Create(schedule string, command string, args []string) (cr *cron.Cron, wgr *sync.WaitGroup) {
-	proc = Proc{map[string]*Status{}, &Status{}, schedule}
+	Proc = Process{map[string]*Status{}, &Status{}, schedule}
 
 	wg := &sync.WaitGroup{}
 	c := cron.New(
@@ -101,7 +81,7 @@ func Create(schedule string, command string, args []string) (cr *cron.Cron, wgr 
 				cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor,
 			),
 		),
-	)	
+	)
 
 	log.Println("new cron:", schedule)
 	_, err := c.AddFunc(schedule, func() {

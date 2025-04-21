@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"gocron/src"
+	"gocron/src/http"
+	"gocron/src/util"
 	"log"
 	"os"
 	"os/signal"
@@ -20,21 +21,20 @@ var (
 )
 
 func main() {
-	flagArgs, execArgs := SplitArgs()
+	flagArgs, execArgs := util.SplitArgs()
 	os.Args = flagArgs
 
 	flag.Parse()
 	if *help {
-		fmt.Println("Usage of", os.Args[0], "[ OPTIONS ] -- [ COMMAND ]", "(build", build, ")")
-		flag.PrintDefaults()
+		flag.Usage()
 		os.Exit(0)
 	}
-	log.Println("Running version:", version)
+	log.Println("Running version:", version, "|", "Build:", build)
 
 	c, wg := cron.Create(*schedule, execArgs[0], execArgs[1:])
 	go cron.Start(c)
 	if *port != "0" {
-		go cron.HttpServer(*port)
+		go http.Server(*port)
 	}
 	if *initrun {
 		go cron.RunJobs(c)
@@ -44,13 +44,4 @@ func main() {
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	log.Println(<-ch)
 	cron.Stop(c, wg)
-}
-
-func SplitArgs() (flagArgs []string, execArgs []string) {
-	for idx, arg := range os.Args {
-		if arg == "--" {
-			return os.Args[:idx], os.Args[idx+1:]
-		}
-	}
-	return os.Args, nil
 }
