@@ -36,7 +36,3 @@ build:
   script:
     - go get .
     - go build -o bin .
-  artifacts:
-    expire_in: 1 week
-    paths:
-      - bin
