@@ -16,12 +16,6 @@ test:
     - go get -tool github.com/jstemmer/go-junit-report/v2@latest
   script:
     - go test ./... -json 2>&1 | go tool go-junit-report -parser gojson > report.xml
-  artifacts:
-    when: always
-    paths:
-      - report.xml
-    reports:
-      junit: report.xml
 
 lint:
   stage: go
