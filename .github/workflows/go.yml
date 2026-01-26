@@ -1,4 +1,5 @@
 name: GO
+
 on:
   push:
     branches: [ "main" ]
