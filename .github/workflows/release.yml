@@ -44,6 +44,7 @@ jobs:
           release_name: ${{ github.ref }}
           draft: false
           prerelease: false
+
       - name: Upload asset for linux-amd64
         uses: actions/upload-release-asset@v1
         env:
