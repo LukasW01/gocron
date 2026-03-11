@@ -45,8 +45,8 @@ $ curl -v localhost:8080
     "StartingTime": "2015-03-11T13:59:05+01:00"
   },
   "Schedule": "*/5 * * * *"
-* Connection #0 to host localhost left intact
 }
+* Connection #0 to host localhost left intact
 ```
 
 ## License
