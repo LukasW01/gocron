@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: '^1.26'
+          go-version: '^1.27'
       - name: lint
         uses: golangci/golangci-lint-action@v9
         with:
@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-            go-version: '^1.26'
+            go-version: '^1.27'
       - name: fmt
         run: go fmt .
 
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: '^1.26'
+          go-version: '^1.27'
       - name: test
         run: go test .
 
@@ -48,6 +48,6 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: '^1.26'
+          go-version: '^1.27'
       - name: fmt
         run: go build .  

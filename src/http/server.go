@@ -19,10 +19,10 @@ func Server(port string) {
 	}
 }
 
-func Handler(w http.ResponseWriter, r *http.Request) {
+func Handler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	json, err := json.Marshal(cron.Proc)
+	marshal, err := json.Marshal(cron.Proc)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -32,7 +32,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}
 
-	if _, err := w.Write(json); err != nil {
+	if _, err := w.Write(marshal); err != nil {
 		return
 	}
 }

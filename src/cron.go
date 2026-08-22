@@ -1,6 +1,7 @@
 package cron
 
 import (
+	"errors"
 	"gocron/src/util"
 	"log"
 	"os"
@@ -52,9 +53,9 @@ func Execute(command string, args []string) {
 	go util.Output(&run.Stderr, stderr, run.Pid)
 
 	if err := cmd.Wait(); err != nil {
-		if exit, ok := err.(*exec.ExitError); ok {
+		if exit, ok := errors.AsType[*exec.ExitError](err); ok {
 			// The program has exited with an exit code != 0
-			// so set the error code to tremporary value
+			// so set the error code to temporary value
 			run.ExitStatus = 127
 			if status, ok := exit.Sys().(syscall.WaitStatus); ok {
 				run.ExitStatus = status.ExitStatus()
